@@ -1,0 +1,37 @@
+# This manifest demonstrates the Argocd app-of-apps pattern
+# Running kubectl apply -f apps.yaml against a cluster which
+# is running argocd will create a new parent application using
+# the settings in this manifest which in turn refers to more
+# argo Application manifests stored in another git repository
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tenant-systems
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: argocd
+    server: https://kubernetes.default.svc
+  source:
+    path: production
+    repoURL: https://github.com/bernos/argocd-demo-environments.git
+    targetRevision: HEAD
+    directory:
+      recurse: true
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - Validate=true
+      - CreateNamespace=false
+    # retry:
+      # limit: 5
+      # backoff:
+        # duration: 5s
+        # factor: 2
+        # maxDuration: 3m
+  
